@@ -92,15 +92,18 @@ label{
 .radio-toolbar label {
 
   display: inline-block;
-  background-color: #ddd;
-  padding: 4px 11px;
+  background-color: #ffffff;
+  padding: 5px 15px;
   font-family: "Muli";
-  font-size: 16px;
+  font-size: 19px;
   cursor: pointer;
+ border-style: solid;
+  border-width: 5px;
+border-color: red;
 }
 
 .radio-toolbar input[type="radio"]:checked+label {
-  background-color: #bbb;
+  background-color: #6778fc;
 }
 
 
@@ -116,7 +119,7 @@ textarea, input {
 }
 
 textarea:focus, input:focus {
-	border-color: none;
+	border-color: black;
 }
 
 textarea:focus, input:focus, button:focus, button {
