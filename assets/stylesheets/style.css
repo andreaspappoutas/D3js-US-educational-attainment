@@ -341,11 +341,3 @@ form {
         color: #0FA3B1;
     }
 
-@media screen and (min-width: 7608px) {
-  li.resizable {
-    font-size: 63px;
-  }
- nav.resizable {
-    font-size: 63px;
-  }
-}
