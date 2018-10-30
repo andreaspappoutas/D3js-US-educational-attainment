@@ -8971,18 +8971,7 @@ a.text-dark:hover, a.text-dark:focus {
   .table-bordered td {
     border: 1px solid #ddd !important;
   }
-  @media only screen and (max-width: 9068px) {
-    .navbar-inverse {
-    background-color: #fff;
-    border-color: transparent;
-    height: 50px;
-    }
 }
-  @media only screen and (max-width: 9068px) {
-    .navbar-inverse {
-    background-color: #fff;
-    border-color: transparent;
-    height: 50px;
-    }
+
 }
 /*# sourceMappingURL=bootstrap.css.map */
