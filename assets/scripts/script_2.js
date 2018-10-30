@@ -176,7 +176,7 @@ d3.json("assets/data/us.json", function(data) {
             treemap(root
             .sum(function (d) {
                 if (treeSumSortType == "number") {
-                    color = d3.scaleLinear().domain([0, 1/4*5000000, 2/4*5000000, 3/4*5000000, 5000000]).range(["#bc0933", "#68022c", "#a53563", "#a7d60c"]);
+                    color = d3.scaleLinear().domain([0, 1/4*5000000, 2/4*5000000, 3/4*5000000, 5000000]).range(["#93f791", "#4dc19b", "#b21aa5", "#004409"]);
                     return d["Total College"];
                 } else if (treeSumSortType == "percent") {
                     color = d3.scaleLinear().domain([0, 1/4*50, 2/4*50, 3/4*50, 50]).range(["#275b68", "#961678", "#c4054b", "#623a72"]);
