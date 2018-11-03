@@ -11,8 +11,16 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 </head>
   <header>
-	<div class="panel-collapse">
+	  <div class="collapse">
+	  <button class="btn btn-link" type="button" data-toggle="collapse" data-target=".collapse" aria-expanded="true" aria-controls="collapseOne">
+	<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+		  </button>
+		<span class="navbar-brand">Responsive Demo</span>
 	 <nav>
+		 <div class="navbar-collapse collapse">
        <ul >
       <li ><a href="#top" onmouseover="soundclick.play();"  >Top</a></li>
       <li ><a href="#national" onmouseover="soundclick.play();">National</a></li>
@@ -20,6 +28,7 @@
       <li ><a href="#state" onmouseover="soundclick.play();">State-Level</a></li>
 	    <script src='https://code.responsivevoice.org/responsivevoice.js'></script>	
     <ul>
+	    </div>
 	    </nav>
 		
 	    </div>
@@ -93,16 +102,16 @@ soundclick.src = "sound.wav";
 	
 $(document).ready(function(){
   if ($(window).width() <= 480){  
-    $('.panel-collapse').removeClass('in');
+    $('.collapse').removeClass('toggle');
   }
 });
 
 $(window).resize(function(){
   if ($(window).width() >= 480){  
-    $('.panel-collapse').addClass('in');
+    $('.collapse').addClass('toggle');
   }
   if ($(window).width() <= 480){  
-    $('.panel-collapse').removeClass('in');
+    $('.collapse').removeClass('toggle');
   }
 });	
 
