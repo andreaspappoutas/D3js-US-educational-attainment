@@ -86,10 +86,25 @@ soundclick.src = "sound.wav";
            $('nav').addClass('fixed-header');
         }
         else {
-          
+           $('nav').removeClass('fixed-header');
         }
     });
 });
+	
+$(document).ready(function(){
+  if ($(window).width() <= 480){  
+    $('.panel-collapse').removeClass('in');
+  }
+});
+
+$(window).resize(function(){
+  if ($(window).width() >= 480){  
+    $('.panel-collapse').addClass('in');
+  }
+  if ($(window).width() <= 480){  
+    $('.panel-collapse').removeClass('in');
+  }
+});	
 
 /* scrollTop() >= 240
    Should be equal the the height of the header
