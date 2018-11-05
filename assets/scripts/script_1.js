@@ -2,8 +2,8 @@
 // Data Visualization III - Pie Chart
 
 var donut = donutChart()
-        .width(960)
-        .height(450)
+        .width(100%)
+        .height(100%)
         .cornerRadius(0) // sets how rounded the corners are on each slice
         .padAngle(0.005) // effectively dictates the gap between slices
         .variable('Percent')
@@ -58,8 +58,8 @@ function donutChart() {
             // ===========================================================================================
             // append the pieChartSVG object to the selection
             var pieChartSVG = selection
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
+                .attr('width', 100%)
+                .attr('height', 100%)
               .append('g')
                 .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
             // ===========================================================================================
