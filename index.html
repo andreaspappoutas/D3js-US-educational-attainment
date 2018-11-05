@@ -33,33 +33,6 @@
     </header>
 <body>
 
-
-<style>
-	.svg-container {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    padding-bottom: 100%;
-    vertical-align: top;
-    overflow: hidden;
-}
-.svg-content {
-    display: inline-block;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-	</style>
-	<script>
-		var svg = d3.select("div#container")
-  .append("svg")
-  .attr("preserveAspectRatio", "xMinYMin meet")
-  .attr("viewBox", "0 0 300 300")
-  .classed("svg-content", true);
-	</script>
- 
-
-
 	
 		
 		
@@ -74,9 +47,9 @@
 var soundclick = new Audio();
 soundclick.src = "sound.wav";
 </script>  
-<div id="container" class="svg-container">
+
     <svg id="pie-chart" width="screen.width;" height="screen.height; ></svg><a name="regional"></a>
-											      </div>											     									      
+											      											     									      
     <p><br><br><br></p>
     <h2 onmouseover="responsiveVoice.speak('Educational Attainment: Region-level Breakdown of University Students');" onmouseleave="responsiveVoice.cancel();"  class="subtitle">Educational Attainment: Region-level Breakdown of University Students</h2>
 	
