@@ -3,8 +3,8 @@
 var w = window.innerWidth;
 var h = window.innerHeight;
 var donut = donutChart()
-        .width(w)
-        .height(h)
+        .width(w-100)
+        .height(h-100)
         .cornerRadius(0) // sets how rounded the corners are on each slice
         .padAngle(0.005) // effectively dictates the gap between slices
         .variable('Percent')
