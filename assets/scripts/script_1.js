@@ -2,8 +2,8 @@
 // Data Visualization III - Pie Chart
 
 var donut = donutChart()
-        .width(screen.width)
-        .height(screen.height)
+        .width(960)
+        .height(450)
         .cornerRadius(0) // sets how rounded the corners are on each slice
         .padAngle(0.005) // effectively dictates the gap between slices
         .variable('Percent')
