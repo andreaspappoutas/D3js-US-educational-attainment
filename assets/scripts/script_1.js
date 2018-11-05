@@ -1,10 +1,9 @@
 // Script 1
 // Data Visualization III - Pie Chart
-var w = window.innerWidth;
-var h = window.innerHeight;
+
 var donut = donutChart()
-        .width(w-100)
-        .height(h-100)
+        .width(960)
+        .height(450)
         .cornerRadius(0) // sets how rounded the corners are on each slice
         .padAngle(0.005) // effectively dictates the gap between slices
         .variable('Percent')
