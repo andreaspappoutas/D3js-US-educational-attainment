@@ -341,3 +341,32 @@ form {
         color: #0FA3B1;
     }
 
+
+
+
+.footer {
+            width: 100%;
+            height: 50px;
+            position: absolute;
+            bottom: 0;
+            background-color: #DDD;
+        }
+        .center-xy {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .footer-text {
+            font-family: 'Calibri';
+            font-size: 0.8em;
+
+        }
+        .footer-text a {
+            text-decoration: none;
+        }
+       .footer-text {
+         min-width: 200px;
+         text-align: center;
+        }
+
