@@ -43,6 +43,13 @@ header h1 {
   width: 100%; 
 }
 
+svg{
+width:1500px;
+  height:auto;
+
+
+}
+
 nav {
   width:1500px;
   height:60px;
