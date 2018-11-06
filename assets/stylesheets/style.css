@@ -43,9 +43,9 @@ header h1 {
   width: 100%; 
 }
 
-svg{
+.pie-chart{
 width:400px;
-  height:160;
+  height:160px;
 
 
 }
