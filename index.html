@@ -12,7 +12,7 @@
 </head>
   <header>
 	
-		  
+<script src="https://d3js.org/d3.v4.min.js"></script>		  
 			  
 <nav class="navbar navbar-expand-md navbar-dark bg-dark">
     
@@ -29,10 +29,11 @@
 		
 		
       <li class="nav-item active"><a class="nav-link" href="#top" onmouseover="soundclick.play();"  >Top</a></li>
-      <li class="nav-item active"><a class="nav-link" href="#national" onmouseover="soundclick.play();">National</a></li>
-      <li class="nav-item active"><a class="nav-link" href="#regional" onmouseover="soundclick.play();">Regional</a></li>
-      <li class="nav-item active"><a class="nav-link" href="#state" onmouseover="soundclick.play();">State-Level</a></li>
-	   
+      <li class="nav-item active"><a class="nav-link" href="#national" onmouseover="soundclick.play();" onclick="FirstChart()">National</a></li>
+      <li class="nav-item active"><a class="nav-link" href="#regional" onmouseover="soundclick.play();" onclick="SecondChart()">Regional</a></li>
+      <li class="nav-item active"><a class="nav-link" href="#state" onmouseover="soundclick.play();" onclick="ThirdChart()">State-Level</a></li>
+      <li class="nav-item active"><a class="nav-link" href="/finito/new" onmouseover="soundclick.play();" >3 new charts</a></li>	   
+
     </ul>
 	    </div>
         </div>
@@ -52,82 +53,205 @@
 		
 
     <h1 onmouseover="responsiveVoice.speak('Educational Attainment in the United States');" onmouseleave="responsiveVoice.cancel();" class="title" >Educational Attainment in the United States</h1>
-        
-	
+      <h2 id="FirstTitle" onmouseover="responsiveVoice.speak('Nation-Wide Education Level of Population in Schooling');" onmouseleave="responsiveVoice.cancel();" class="subtitle">Nation-Wide Education Level of Population in Schooling</h2>  
+<h2 id="SecondTitle" onmouseover="responsiveVoice.speak('Educational Attainment: Region-level Breakdown of University Students');" onmouseleave="responsiveVoice.cancel();"  class="subtitle">Educational Attainment: Region-level Breakdown of University Students</h2>
+<h2 id="ThirdTitle" onmouseover="responsiveVoice.speak('Education Level of Population in Schooling: State-level Breakdown');" onmouseleave="responsiveVoice.cancel();" class="subtitle">Education Level of Population in Schooling: State-level Breakdown</h2>
+
+<div id="chart" style="width: 900;height: 500"></div>
+<div id="drop" align=center></div>	
 	<p><br></p>
-    <h2 onmouseover="responsiveVoice.speak('Nation-Wide Education Level of Population in Schooling');" onmouseleave="responsiveVoice.cancel();" class="subtitle">Nation-Wide Education Level of Population in Schooling</h2>
 <script>	
 var soundclick = new Audio();
 soundclick.src = "sound.wav";
 </script>  
-
-    <svg id="pie-chart" width="960" height="450" ></svg><a name="regional"></a>
-											      											     									      
-    <p><br><br><br></p>
-    <h2 onmouseover="responsiveVoice.speak('Educational Attainment: Region-level Breakdown of University Students');" onmouseleave="responsiveVoice.cancel();"  class="subtitle">Educational Attainment: Region-level Breakdown of University Students</h2>
-	
-    <form id="tree-form">
-        <div class="radio-toolbar">
-            <input type="radio" id="mode1" name="treeSum" value="number" checked>
-            <label for="mode1" onmouseover= "responsiveVoice.speak('Pursuing a Masters degree (in # of students)');" onmouseleave="responsiveVoice.cancel();">Pursuing a Masters degree (in # of students)</label>
-            <input type="radio" id="mode2" name="treeSum" value="percent">
-             <label for="mode2" onmouseover= "responsiveVoice.speak('Pursuing a Masters degree (in %)');" onmouseleave="responsiveVoice.cancel();">Pursuing a Masters degree (in %)</label>
-            <input type="radio" id="mode3" name="treeSum" value="male">
-            <label for="mode3" onmouseover= "responsiveVoice.speak('Males in College (18-24yrs)(in %)');" onmouseleave="responsiveVoice.cancel();" >Males in College (18-24yrs)(in %)</label>
-            <input type="radio" id="mode4" name="treeSum" value="femal">
-           <label for="mode4" onmouseover= "responsiveVoice.speak('Females in College (18-24yrs) (in %)');" onmouseleave="responsiveVoice.cancel();">Females in College (18-24yrs) (in %)</label>
-        </div>
-    </form>
-	<p></p>
-    <div id="chart"></div>
-	<a name="state"></a>
-    <p><br><br></p>
-    <h2 onmouseover="responsiveVoice.speak('Education Level of Population in Schooling: State-level Breakdown');" onmouseleave="responsiveVoice.cancel();" class="subtitle">Education Level of Population in Schooling: State-level Breakdown</h2>
-	
-    <form id="stack-form">
-        <div class="radio-toolbar">
-            <input type="radio" id="radio1" name="mode" value="bypercent" checked>
-           <label for="radio1" onmouseover= "responsiveVoice.speak('Students (in %)');" onmouseleave="responsiveVoice.cancel();">Students (in %)</label>
-            <input type="radio" id="radio2" name="mode" value="bycount">
-           <label for="radio2" onmouseover= "responsiveVoice.speak('Students (in number of people)');"  onmouseleave="responsiveVoice.cancel();">Students (in number of people)</label>
-    </div>
-    </form>
-    <div>
-        <svg id="stacked-bar-chart" ></svg>
-    </div>
-		
-	
-		
-		
-	
-		
-		
-	
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-<script src="assets/scripts/script_1.js"></script>
-<script src="assets/scripts/script_2.js"></script>
-<script src="assets/scripts/script_3.js"></script>
 <script>
-     $( document ).ready(function() {
-      $(window).scroll(function(){
-        if ($(window).scrollTop() >= 300) {
-           $('nav').addClass('fixed-header');
+function loadjscssfile(filename, filetype){
+    if (filetype=="js"){ //if filename is a external JavaScript file
+        var fileref=document.createElement('script')
+        fileref.setAttribute("type","text/javascript")
+        fileref.setAttribute("src", filename)
+    }
+    else if (filetype=="css"){ //if filename is an external CSS file
+        var fileref=document.createElement("link")
+        fileref.setAttribute("rel", "stylesheet")
+        fileref.setAttribute("type", "text/css")
+        fileref.setAttribute("href", filename)
+    }
+    if (typeof fileref!="undefined")
+        document.getElementsByTagName("head")[0].appendChild(fileref)
+}
+ 
+
+function removejscssfile(filename, filetype){
+    var targetelement=(filetype=="js")? "script" : (filetype=="css")? "link" : "none" //determine element type to create nodelist from
+    var targetattr=(filetype=="js")? "src" : (filetype=="css")? "href" : "none" //determine corresponding attribute to test for
+    var allsuspects=document.getElementsByTagName(targetelement)
+    for (var i=allsuspects.length; i>=0; i--){ //search backwards within nodelist for matching elements to remove
+    if (allsuspects[i] && allsuspects[i].getAttribute(targetattr)!=null && allsuspects[i].getAttribute(targetattr).indexOf(filename)!=-1)
+        allsuspects[i].parentNode.removeChild(allsuspects[i]) //remove element by calling parentNode.removeChild()
+    }
+}
+
+
+
+function createjscssfile(filename, filetype){
+    if (filetype=="js"){ //if filename is a external JavaScript file
+        var fileref=document.createElement('script')
+        fileref.setAttribute("type","text/javascript")
+        fileref.setAttribute("src", filename)
+    }
+    else if (filetype=="css"){ //if filename is an external CSS file
+        var fileref=document.createElement("link")
+        fileref.setAttribute("rel", "stylesheet")
+        fileref.setAttribute("type", "text/css")
+        fileref.setAttribute("href", filename)
+    }
+    return fileref
+}
+ 
+function replacejscssfile(oldfilename, newfilename, filetype){
+    var targetelement=(filetype=="js")? "script" : (filetype=="css")? "link" : "none" //determine element type to create nodelist using
+    var targetattr=(filetype=="js")? "src" : (filetype=="css")? "href" : "none" //determine corresponding attribute to test for
+    var allsuspects=document.getElementsByTagName(targetelement)
+    for (var i=allsuspects.length; i>=0; i--){ //search backwards within nodelist for matching elements to remove
+        if (allsuspects[i] && allsuspects[i].getAttribute(targetattr)!=null && allsuspects[i].getAttribute(targetattr).indexOf(oldfilename)!=-1){
+            var newelement=createjscssfile(newfilename, filetype)
+            allsuspects[i].parentNode.replaceChild(newelement, allsuspects[i])
         }
-        else {
-           $('nav').removeClass('fixed-header');
+    }
+}
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+}
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = this.length - 1; i >= 0; i--) {
+        if(this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
         }
-    });
-});
+    }
+}
+var test= 1;
+document.getElementById("FirstTitle").style.display = "block";
+document.getElementById("SecondTitle").style.display = "none";
+document.getElementById("ThirdTitle").style.display = "none";
+loadjscssfile("assets/scripts/script_1.js", "js") 
+function FirstChart() {
+
+	removejscssfile("assets/scripts/script_2.js", "js")
+	removejscssfile("style1.css", "css")
+	removejscssfile("assets/scripts/script_3.js", "js") 
+	removejscssfile("style2.css", "css") 
+	loadjscssfile("assets/scripts/script_1.js", "js") 
+
+	removejscssfile("https://d3js.org/d3.v3.min.js", "js")
+	loadjscssfile("https://d3js.org/d3.v4.min.js", "js")
+
+	document.getElementById("FirstTitle").style.display = "block";
+	document.getElementById("SecondTitle").style.display = "none";  
+	document.getElementById("ThirdTitle").style.display = "none";
+
+ var myEle = document.getElementById("deutero");
+    if(myEle){
+        document.getElementById("deutero").remove();
+    }
+
+document.getElementById("chart").style.display = "block";
+
+var myEle3 = document.getElementById("trito");
+    if(myEle3){
+        document.getElementById("trito").remove();
+    }
+var myEle4 = document.getElementById("dropdown");
+    if(myEle4){
+	document.getElementById("dropdown").remove();
+    }
+	
+	
 
 
 	
-	 
 
-/* scrollTop() >= 240
-   Should be equal the the height of the header
- */
+
+}
+function SecondChart() {
+	removejscssfile("https://d3js.org/d3.v3.min.js", "js") 
+	loadjscssfile("https://d3js.org/d3.v4.min.js", "js") 
+	removejscssfile("assets/scripts/script_1.js", "js") 
+	removejscssfile("assets/scripts/script_3.js", "js") 
+	removejscssfile("style2.css", "css") 
+	loadjscssfile("style1.css", "css") 
+	loadjscssfile("assets/scripts/script_2.js", "js") 
+
+
+	document.getElementById("FirstTitle").style.display = "none";
+	document.getElementById("SecondTitle").style.display = "block";  
+	document.getElementById("ThirdTitle").style.display = "none";
+
+
+
+	document.getElementById("chart").style.display = "none";
+
+var myEle6 = document.getElementById("deutero");
+    if(myEle6){
+	document.getElementById("deutero").remove();
+    }
+var myEle7 = document.getElementById("trito");
+    if(myEle7){
+	document.getElementById("trito").remove();
+    }
+var myEle8 = document.getElementById("dropdown");
+    if(myEle8){
+	document.getElementById("dropdown").remove();
+    }
+
+
+}
+
+function ThirdChart() {
+	removejscssfile("https://d3js.org/d3.v4.min.js", "js") //remove all occurences "somestyle.css" on page
+	loadjscssfile("https://d3js.org/d3.v3.min.js", "js") //dynamically load and add this .js file
+	removejscssfile("assets/scripts/script_1.js", "js") //remove all occurences of "somescript.js" on page
+	removejscssfile("assets/scripts/script_2.js", "js") //remove all occurences of "somescript.js" on page
+	removejscssfile("style1.css", "css") //remove all occurences "somestyle.css" on page
+	loadjscssfile("style2.css", "css") ////dynamically load and add this .css file
+	loadjscssfile("assets/scripts/script_3.js", "js") //dynamically load and add this .js file
+
+
+	document.getElementById("FirstTitle").style.display = "none";
+	document.getElementById("SecondTitle").style.display = "none";  
+	document.getElementById("ThirdTitle").style.display = "block";
+
+	document.getElementById("chart").style.display = "none";
+var myEle10 = document.getElementById("deutero");
+    if(myEle10){
+	document.getElementById("deutero").remove();
+    }
+var myEle11 = document.getElementById("trito");
+    if(myEle11){
+	document.getElementById("trito").remove();
+    }
+var myEle12 = document.getElementById("dropdown");
+    if(myEle12){
+	document.getElementById("dropdown").remove();
+    }
+
+
+}
+
 </script>
+
+											      											     									      
+
+		
+
+		
+		
+	
+		
+		
+	
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
@@ -136,3 +260,4 @@ soundclick.src = "sound.wav";
 	       
 </body>
 </html>
+			
