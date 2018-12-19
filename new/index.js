@@ -1,11 +1,11 @@
 // define data
 var dataset = [
-    {label: "Thermansi", count: 63.7},
-    {label: "Zesto nero", count: 5.7},
-    {label: "Mageirema", count: 17.3},
-    {label: "Psixi Xoron", count: 1.3},
-    {label: "Fotismos", count: 1.7},
-    {label: "Siskeves", count: 10.2},
+    {label: "Θέρµανση", count: 63.7},
+    {label: "Ζεστό Νερό ", count: 5.7},
+    {label: "Μαγείρεµα", count: 17.3},
+    {label: "Ψύξη Χώρων", count: 1.3},
+    {label: "Φωτισµός", count: 1.7},
+    {label: "Συσκευές", count: 10.2},
   ];
 
 // chart dimensions
