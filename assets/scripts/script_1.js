@@ -1,217 +1,244 @@
-function pieChart(config) {
-    function setReSizeEvent(data) {
-        var resizeTimer;
-        window.removeEventListener('resize', function() {});
-        window.addEventListener('resize', function(event) {
+// Script 1
+// Data Visualization III - Pie Chart
+var donut = donutChart()
+        .width(960)
+        .height(450)
+        .cornerRadius(0) // sets how rounded the corners are on each slice
+        .padAngle(0.005) // effectively dictates the gap between slices
+        .variable('Percent')
+        .category('Education Level');
 
-            if (resizeTimer !== false) {
-                clearTimeout(resizeTimer);
+    d3.tsv('assets/data/species.tsv', function(error, data) {
+        if (error) throw error;
+        d3.select('#pie-chart')
+            .datum(data) // bind data to the div
+            .call(donut); // draw chart in div
+    });
+
+function donutChart() {
+    var width,
+        height,
+        margin = {top: 10, right: 10, bottom: 10, left: 10},
+        colour = d3.scaleOrdinal().range(["#0FA3B1", "#ff0010", "#ff00c3", "#3700ff", "#a89a01", "#8573c4", "#00ff04"]), // colour scheme
+        variable, // value in data that will dictate proportions on chart
+        category, // compare data by
+        padAngle, // effectively dictates the gap between slices
+        floatFormat = d3.format('.4r'),
+        cornerRadius, // sets how rounded the corners are on each slice
+        percentFormat = d3.format(',.1%');
+
+    function chart(selection){
+        selection.each(function(data) {
+            // generate chart
+
+            // ===========================================================================================
+            // Set up constructors for making donut. See https://github.com/d3/d3-shape/blob/master/README.md
+            var radius = Math.min(width, height) / 2;
+
+            // creates a new pie generator
+            var pie = d3.pie()
+                .value(function(d) { return floatFormat(d[variable]); })
+                .sort(null);
+
+            // contructs and arc generator. This will be used for the donut. The difference between outer and inner
+            // radius will dictate the thickness of the donut
+            var arc = d3.arc()
+                .outerRadius(radius * 0.8)
+                .innerRadius(radius * 0.6)
+                .cornerRadius(cornerRadius)
+                .padAngle(padAngle);
+
+            // this arc is used for aligning the text labels
+            var outerArc = d3.arc()
+                .outerRadius(radius * 0.9)
+                .innerRadius(radius * 0.9);
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // append the pieChartSVG object to the selection
+            var pieChartSVG = selection
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+              .append('g')
+                .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')');
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // g elements to keep elements within svg modular
+            pieChartSVG.append('g').attr('class', 'slices');
+            pieChartSVG.append('g').attr('class', 'labelName');
+            pieChartSVG.append('g').attr('class', 'lines');
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // add and colour the donut slices
+            var path = pieChartSVG.select('.slices')
+                .datum(data).selectAll('path')
+                .data(pie)
+              .enter().append('path')
+                .attr('fill', function(d) { return colour(d.data[category]); })
+                .attr('d', arc);
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // add text labels
+            var label = pieChartSVG.select('.labelName').selectAll('text')
+                .data(pie)
+              .enter().append('text')
+                .attr('dy', '.35em')
+                .html(function(d) {
+                    // add "key: value" for given category. Number inside tspan is bolded in stylesheet.
+                    return d.data[category] + ': <tspan>' + percentFormat(d.data[variable]) + '</tspan>';
+                })
+                .attr('transform', function(d) {
+
+                    // effectively computes the centre of the slice.
+                    // see https://github.com/d3/d3-shape/blob/master/README.md#arc_centroid
+                    var pos = outerArc.centroid(d);
+
+                    // changes the point to be on left or right depending on where label is.
+                    pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+                    return 'translate(' + pos + ')';
+                })
+                .style('text-anchor', function(d) {
+                    // if slice centre is on the left, anchor text to start, otherwise anchor to end
+                    return (midAngle(d)) < Math.PI ? 'start' : 'end';
+                });
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // add lines connecting labels to slice. A polyline creates straight lines connecting several points
+            var polyline = pieChartSVG.select('.lines')
+                .selectAll('polyline')
+                .data(pie)
+              .enter().append('polyline')
+                .attr('points', function(d) {
+
+                    // see label transform function for explanations of these three lines.
+                    var pos = outerArc.centroid(d);
+                    pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+                    return [arc.centroid(d), outerArc.centroid(d), pos]
+                });
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // add tooltip to mouse events on slices and labels
+            d3.selectAll('.labelName text, .slices path').call(toolTip);
+            // ===========================================================================================
+
+            // ===========================================================================================
+            // Functions
+
+            // calculates the angle for the middle of a slice
+            function midAngle(d) { return d.startAngle + (d.endAngle - d.startAngle) / 2; }
+
+            // function that creates and adds the tool tip to a selected element
+            function toolTip(selection) {
+
+                // add tooltip (svg circle element) when mouse enters label or slice
+                selection.on('mouseenter', function (data) {
+
+                    pieChartSVG.append('text')
+                        .attr('class', 'toolCircle')
+                        .attr('dy', -15) // hard-coded. can adjust this to adjust text vertical alignment in tooltip
+                        .html(toolTipHTML(data)) // add text to the circle.
+                        .style('font-size', '.9em')
+                        .style('text-anchor', 'middle'); // centres text in tooltip
+
+                    pieChartSVG.append('circle')
+                        .attr('class', 'toolCircle')
+                        .attr('r', radius * 0.55) // radius of tooltip circle
+                        .style('fill', colour(data.data[category])) // colour based on category mouse is over
+                        .style('fill-opacity', 0.35);
+
+                });
+
+                // remove the tooltip when mouse leaves the slice/label
+                selection.on('mouseout', function () {
+                    d3.selectAll('.toolCircle').remove();
+                });
             }
-            resizeTimer = setTimeout(function() {
-                $(data.mainDiv).empty();
-                drawPieChart(data);
-                clearTimeout(resizeTimer);
-            }, 500);
+
+            // function to create the HTML string for the tool tip. Loops through each key in data object
+            // and returns the html string key: value
+            function toolTipHTML(data) {
+
+                var tip = '',
+                    i   = 0;
+
+                for (var key in data.data) {
+                    console.log(key, data.data);
+                    // if value is a number, format it as a percentage
+                    var value = key == "Percent" ? percentFormat(data.data[key]) : data.data[key];
+
+                    // leave off 'dy' attr for first tspan so the 'dy' attr on text element works. The 'dy' attr on
+                    // tspan effectively imitates a line break.
+                    if (i === 0) tip += '<tspan x="0">' + key + ': ' + value + '</tspan>';
+                    else tip += '<tspan x="0" dy="1.2em">' + key + ': ' + value + '</tspan>';
+                    i++;
+                }
+
+                return tip;
+            }
+            // ===========================================================================================
+
         });
     }
-    drawPieChart(config);
-    setReSizeEvent(config);
+
+    // getter and setter functions. See Mike Bostocks post "Towards Reusable Charts" for a tutorial on how this works.
+    chart.width = function(value) {
+        if (!arguments.length) return width;
+        width = value;
+        return chart;
+    };
+
+    chart.height = function(value) {
+        if (!arguments.length) return height;
+        height = value;
+        return chart;
+    };
+
+    chart.margin = function(value) {
+        if (!arguments.length) return margin;
+        margin = value;
+        return chart;
+    };
+
+    chart.radius = function(value) {
+        if (!arguments.length) return radius;
+        radius = value;
+        return chart;
+    };
+
+    chart.padAngle = function(value) {
+        if (!arguments.length) return padAngle;
+        padAngle = value;
+        return chart;
+    };
+
+    chart.cornerRadius = function(value) {
+        if (!arguments.length) return cornerRadius;
+        cornerRadius = value;
+        return chart;
+    };
+
+    chart.colour = function(value) {
+        if (!arguments.length) return colour;
+        colour = value;
+        return chart;
+    };
+
+    chart.variable = function(value) {
+        if (!arguments.length) return variable;
+        variable = value;
+        return chart;
+    };
+
+    chart.category = function(value) {
+        if (!arguments.length) return category;
+        category = value;
+        return chart;
+    };
+
+    return chart;
 }
-
-function drawPieChart(config) {
-    var data = config.data;
-    var colorRange = config.colorRange;
-    var mainDiv = config.mainDiv;
-    var mainDivName = mainDiv.substr(1, mainDiv.length);
-    var caption = config.caption;
-    var tooltipLable = config.tooltipLable;
-var category = config.category;
-var age = config.age;
-var count = config.count;
-    var Caption2 = config.Caption2;
-    var value = config.value;
-    d3.select(mainDiv).append("svg").attr("width", $(mainDiv).width()).attr("height", 724);
-    var svg = d3.select(mainDiv + " svg"),
-        margin = {
-            top: 20,
-            right: 20,
-            bottom: 30,
-            left: 40
-        },
-        width = +svg.attr("width") - margin.left - margin.right,
-        height1 = +svg.attr("height") - margin.top - margin.bottom;
-    var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height1 / 2 + ")");
-    var color = d3.scaleOrdinal(colorRange);
-    var radius = Math.min(width, height1) * 0.5;
-    var pie = d3.pie()
-        .sort(null)
-
-        .value(function(d) {
-            return d[value];
-        });
-
-    var path = d3.arc()
-        .outerRadius(radius - 20)
-        .innerRadius(0)
-        .cornerRadius(5);
-
-    var label = d3.arc()
-        .outerRadius(radius - 40)
-        .innerRadius(radius - 40);
-    var arc = g.selectAll(".arc")
-        .data(pie(data))
-        .enter().append("g")
-        .classed("arc", true);
-
-    var pathArea = arc.append("path")
-        .attr("d", path)
-        .attr("id", function(d, i) {
-            return "arc-" + i
-        })
-        .attr("style", "fill-opacity: 0.85;")
-        .attr("fill", function(d) {
-            return color(d.data[caption]);
-        })
-        .attr("data", function(d) {
-            d.data["percentage"] = (d.endAngle - d.startAngle) / (2 * Math.PI) * 100;
-            return JSON.stringify(d.data);
-        });
-
-    //CBT:give blinking effect on mouse over
-    pathArea.on("mouseover", function(d) {
-        var currentEl = d3.select(this);
-        currentEl.attr("style", "fill-opacity:1;");
-
-        var fadeInSpeed = 120;
-        d3.select("#tooltip_" + mainDivName)
-            .transition()
-            .duration(fadeInSpeed)
-            .style("opacity", function() {
-                return 1;
-            });
-        d3.select("#tooltip_" + mainDivName)
-            .attr("transform", function(d) {
-                var mouseCoords = d3.mouse(this.parentNode);
-                var xCo = mouseCoords[0] + 10;;
-                var yCo = mouseCoords[0] + 10;
-                return "translate(" + xCo + "," + yCo + ")";
-            });
-        //CBT:calculate tooltips text
-        var tooltipData = JSON.parse(currentEl.attr("data"));
-        var tooltipsText = "";
-        d3.selectAll("#tooltipText_" + mainDivName).text("");
-        var yPos = 0;
-        d3.selectAll("#tooltipText_" + mainDivName).append("tspan").attr("x", 0).attr("y", yPos * 10).attr("dy", "3em").text('Education Level:' + d.data[category]);
-        d3.selectAll("#tooltipText_" + mainDivName).append("tspan").attr("x", 0).attr("y", yPos * 10).attr("dy", "1.9em").text(tooltipLable  + ":  " + d3.format("0.2f")(tooltipData["percentage"]));
-        d3.selectAll("#tooltipText_" + mainDivName).append("tspan").attr("x", 0).attr("y", yPos * 10).attr("dy", "4.1em").text('Count:' + d.data[count]);
-        d3.selectAll("#tooltipText_" + mainDivName).append("tspan").attr("x", 0).attr("y", yPos * 10).attr("dy", "5.2em").text('Age Range:'  + d.data[age]);
-        var dims = helpers.getDimensions("tooltipText_" + mainDivName);
-        d3.selectAll("#tooltipText_" + mainDivName + " tspan")
-            .attr("x", dims.w + 2);
-        d3.selectAll("#tooltipRect_" + mainDivName)
-            .attr("width", dims.w + 10)
-            .attr("height1", dims.h + 20);
-    });
-    pathArea.on("mousemove", function(d) {
-        var currentEl = d3.select(this);
-        d3.selectAll("#tooltip_" + mainDivName)
-            .attr("transform", function(d) {
-                var mouseCoords = d3.mouse(this.parentNode);
-                var xCo = mouseCoords[0] + 10;
-                var yCo = mouseCoords[1] + 10;
-                return "translate(" + xCo + "," + yCo + ")";
-            });
-    });
-    pathArea.on("mouseout", function(d) {
-        var currentEl = d3.select(this);
-        currentEl.attr("style", "fill-opacity:0.85;");
-
-        d3.select("#tooltip_" + mainDivName)
-            .style("opacity", function() {
-                return 0;
-            });
-        d3.select("#tooltip_" + mainDivName).attr("transform", function(d, i) {
-            var x = -500;
-            var y = -500;
-            return "translate(" + x + "," + y + ")";
-        });
-    });
-
-    //CBT:tooltips start
-    var tooltipg = g.append("g")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("text-anchor", "end")
-        .attr("id", "tooltip_" + mainDivName)
-        .attr("style", "opacity:0")
-        .attr("transform", "translate(-500,-500)");
-
-    tooltipg.append("rect")
-        .attr("id", "tooltipRect_" + mainDivName)
-        .attr("x", 0)
-        .attr("width", 120)
-        .attr("height1", 80)
-        .attr("opacity", 0.8)
-        .style("fill", "#000000");
-
-    tooltipg
-        .append("text")
-        .attr("id", "tooltipText_" + mainDivName)
-        .attr("x", 30)
-        .attr("y", 15)
-        .attr("fill", "#000000")
-        .style("font-size", 10)
-        .style("font-family", "arial")
-        .text(function(d, i) {
-            return "";
-        });
-    //CBT:tooltips end
-
-    arc.append("text")
-        .attr("dx", 30)
-        .attr("dy", -5)
-        .append("textPath")
-        .attr("xlink:href", function(d, i) {
-            return "#arc-" + i;
-        })
-        .text(function(d) {
-            return d.data[caption].toString();
-        })
-
-}
-
-var helpers = {
-    getDimensions: function(id) {
-        var el = document.getElementById(id);
-        var w = 0,
-            h = 0;
-        if (el) {
-            var dimensions = el.getBBox();
-            w = dimensions.width;
-            h = dimensions.height1;
-        } else {
-            console.log("error: getDimensions() " + id + " not found.");
-        }
-        return {
-            w: w,
-            h: h
-        };
-    }
-}	
-
-
-
-var data=[{ city:"Graduate: 5.0%", beautifulRatio:4.165602, caption2:"Graduate", caption3:"22+", caption4:"4,165,602"},{ city:"Nursery: 6.0%", beautifulRatio:5.013351, caption2:"Nursery", caption3:"4 years old", caption4:"5,013,351"},{ city:"Kindergarten: 5.0%", beautifulRatio:4.221320, caption2:"Kindergarten", caption3:"5 years old", caption4:"4,221,320"},{ city:"Elementary: 1-4 : 20.0%", beautifulRatio:16.511632, caption2:"Elementary: 1-4", caption3:"6-9 years old", caption4:"16,511,632"},{ city:"Elementary: 5-8: 20.0%", beautifulRatio:16.675078, caption2:"Elementary: 5-8", caption3:"10-13 years old", caption4:"16,675,078"},{ city:"High School: 9-12: 21%", beautifulRatio:17.176546, caption2:"High School: 9-12", caption3:"14-18 years old", caption4:"17,176,546"},{ city:"Undergraduate: 23.0%", beautifulRatio:19.291233, caption2:"Undergraduate", caption3:"18-22 years old", caption4:"19,291,233"}];
-    $("#chart").empty();
-    var pieChartConfig = {
-    mainDiv: "#chart",
-    colorRange: ["#f44842", "#f4b841", "#f4f141", "#46f441", "#41f4d9", "#4941f4", "#f441d6"],
-    data: data,
-category:'caption2',
-age:'caption3',
-count:'caption4',
-    caption:"city",
-    tooltipLable:"Percent",
-    value:"beautifulRatio"
-  };
-  var pieChart = new pieChart(pieChartConfig);
