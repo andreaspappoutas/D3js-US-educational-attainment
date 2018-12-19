@@ -1,145 +1,275 @@
-var margin = {top: 30, right: 20, bottom: 30, left: 20},
-    toid="deutero",
-    width = 960,
-    height= 4650,
-    barHeight = 20,
-    barWidth = (width - margin.left - margin.right) * 0.8;
+var el_id = 'chart';
+var treeSumSortType = "number";
 
-var i = 0,
-    duration = 400,
-    root;
+var obj = document.getElementById(el_id);
 
-var diagonal = d3.linkHorizontal()
-    .x(function(d) { return d.y; })
-    .y(function(d) { return d.x; });
+var divWidth = obj.offsetWidth;
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width) // + margin.left + margin.right)
-    .attr("height", height) // + margin.left + margin.right)
-    .attr("id", toid) // + margin.left + margin.right)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var margin = {top: 30, right: 0, bottom: 20, left: 0},
+    width = divWidth,
+    height = 500 - margin.top - margin.bottom,
+    formatNumber = d3.format(","),
+    transitioning;
 
-d3.json("assets/data/us.json", function(error, US) {
-  if (error) throw error;
-  root = d3.hierarchy(US);
-  root.x0 = 0;
-  root.y0 = 0;
-  update(root);
+var color = d3.scaleLinear().domain([0, 1/4*5000000, 2/4*5000000, 3/4*5000000, 5000000]).range(["#ff00ae", "#b8c100", "#d896e8", "#5fb0d8"]);
+
+// sets x and y scale to determine size of visible boxes
+var x = d3.scaleLinear()
+    .domain([0, width])
+    .range([0, width]);
+
+var y = d3.scaleLinear()
+    .domain([0, height])
+    .range([0, height]);
+
+var treemap = d3.treemap()
+        .size([width, height])
+        .paddingInner(0)
+        .round(false);
+
+var svg = d3.select('#'+el_id).append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.bottom + margin.top)
+    .style("margin-left", -margin.left + "px")
+    .style("margin.right", -margin.right + "px")
+    .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .style("shape-rendering", "crispEdges");
+
+var grandparent = svg.append("g")
+        .attr("class", "grandparent");
+
+    grandparent.append("rect")
+        .attr("y", -margin.top)
+        .attr("width", width)
+        .attr("height", margin.top)
+        .attr("fill", '#FF9B42');
+
+    grandparent.append("text")
+        .attr("x", 10)
+        .attr("y", 10 - margin.top)
+        .attr("dy", ".75em");
+
+d3.json("assets/data/us.json", function(data) {
+    var root = d3.hierarchy(data);
+
+    treemap(root
+        .sum(function (d) {
+            if (treeSumSortType == "number") {
+                return d["Total College"];
+            } else {
+                return d["Percent College"];
+            }
+
+        })
+        .sort(function (a, b) {
+            if (treeSumSortType == "number") {
+                return b.height - a.height || b["Total College"] - a["Total College"];
+            } else {
+               return b.height - a.height || b["Percent College"] - a["Percent College"]
+            }
+
+        })
+    );
+
+    display(root);
+
+    function display(d) {
+        // write text into grandparent
+        // and activate click's handler
+        grandparent
+            .datum(d.parent)
+            .on("click", transition)
+            .select("text")
+            .text(name(d));
+        // grandparent color
+        grandparent
+            .datum(d.parent)
+            .select("rect")
+            .attr("fill", function () {
+                return '#f7af72'
+            });
+        var g1 = svg.insert("g", ".grandparent")
+            .datum(d)
+            .attr("class", "depth");
+        var g = g1.selectAll("g")
+            .data(d.children)
+            .enter().
+            append("g");
+        // add class and click handler to all g's with children
+        g.filter(function (d) {
+            return d.children;
+        })
+            .classed("children", true)
+            .on("click", transition);
+        g.selectAll(".child")
+            .data(function (d) {
+                return d.children || [d];
+            })
+            .enter().append("rect")
+            .attr("class", "child")
+            .call(rect);
+        // add title to parents
+        g.append("rect")
+            .attr("class", "parent")
+            .call(rect)
+            .append("title")
+            .text(function (d){
+                return d.data.name;
+            });
+        /* Adding a foreign object instead of a text object, allows for text wrapping */
+        g.append("foreignObject")
+            .call(rect)
+            .attr("class", "foreignobj")
+            .append("xhtml:div")
+            .attr("dy", ".75em")
+            .html(function (d) {
+                var html = '' +
+                    '<p class="title"> ' + d.data.name + '</p>' +
+                    '<p class="value">' + formatNumber(d.value) + '</p>';
+
+                return html;
+            })
+            .attr("class", "textdiv"); //textdiv class allows us to style the text easily with CSS
+        function transition(d) {
+            if (transitioning || !d) return;
+            transitioning = true;
+            var g2 = display(d),
+                t1 = g1.transition().duration(650),
+                t2 = g2.transition().duration(650);
+            // Update the domain only after entering new elements.
+            x.domain([d.x0, d.x1]);
+            y.domain([d.y0, d.y1]);
+            // Enable anti-aliasing during the transition.
+            svg.style("shape-rendering", null);
+            // Draw child nodes on top of parent nodes.
+            svg.selectAll(".depth").sort(function (a, b) {
+                return a.depth - b.depth;
+            });
+            // Fade-in entering text.
+            g2.selectAll("text").style("fill-opacity", 0);
+            g2.selectAll("foreignObject div").style("display", "none");
+            /*added*/
+            // Transition to the new view.
+            t1.selectAll("text").call(text).style("fill-opacity", 0);
+            t2.selectAll("text").call(text).style("fill-opacity", 1);
+            t1.selectAll("rect").call(rect);
+            t2.selectAll("rect").call(rect);
+            /* Foreign object */
+            t1.selectAll(".textdiv").style("display", "none");
+            /* added */
+            t1.selectAll(".foreignobj").call(foreign);
+            /* added */
+            t2.selectAll(".textdiv").style("display", "block");
+            /* added */
+            t2.selectAll(".foreignobj").call(foreign);
+            /* added */
+            // Remove the old node when the transition is finished.
+            t1.on("end.remove", function(){
+                this.remove();
+                transitioning = false;
+            });
+        }
+
+        document.forms[0].addEventListener("change", function() {
+            treeSumSortType = document.forms[0].elements["treeSum"].value;
+            treemap(root
+            .sum(function (d) {
+                if (treeSumSortType == "number") {
+                    color = d3.scaleLinear().domain([0, 1/4*5000000, 2/4*5000000, 3/4*5000000, 5000000]).range(["#ff00ae", "#b8c100", "#d896e8", "#5fb0d8"]);
+                    return d["Total College"];
+                } else if (treeSumSortType == "percent") {
+                    color = d3.scaleLinear().domain([0, 1/4*50, 2/4*50, 3/4*50, 50]).range(["#275b68", "#961678", "#c4054b", "#623a72"]);
+                    return d["Percent College"];
+                } else if (treeSumSortType == "male") {
+                    color = d3.scaleLinear().domain([0, 1/4*50, 2/4*50, 3/4*50, 50]).range(["#04c411", "#04a4c4", "#2a1e63", "#6f7745"]);
+                    return d["Percent College - Male"];
+                } else {
+                    color = d3.scaleLinear().domain([0, 1/4*50, 2/4*50, 3/4*50, 50]).range(["#b109f9", "#5ebc69", "#bf2028", "#c0db0f"]);
+                    return d["Percent College - Female"];
+                }
+
+            })
+            .sort(function (a, b) {
+                if (treeSumSortType == "number") {
+                    return b.height - a.height || b["Total College"] - a["Total College"];
+                } else if (treeSumSortType == "percent") {
+                    return b.height - a.height || b["Percent College"] - a["Percent College"];
+                } else if (treeSumSortType == "male") {
+                    return b.height - a.height || b["Percent College - Male"] - a["Percent College - Male"]
+                } else {
+                    return b.height - a.height || b["Percent College - Female"] - a["Percent College - Female"]
+                }
+
+            })
+        );
+
+        display(root);
+        });
+
+        return g;
+    }
+
+    function text(text) {
+        text.attr("x", function (d) {
+            return x(d.x) + 6;
+        })
+            .attr("y", function (d) {
+                return y(d.y) + 6;
+            });
+    }
+
+    function rect(rect) {
+        rect
+            .attr("x", function (d) {
+                return x(d.x0);
+            })
+            .attr("y", function (d) {
+                return y(d.y0);
+            })
+            .attr("width", function (d) {
+                return x(d.x1) - x(d.x0);
+            })
+            .attr("height", function (d) {
+                return y(d.y1) - y(d.y0);
+            })
+            .attr("fill", function(d) { return color(d.value); });
+    }
+
+    function foreign(foreign) { /* added */
+        foreign
+            .attr("x", function (d) {
+                return x(d.x0);
+            })
+            .attr("y", function (d) {
+                return y(d.y0);
+            })
+            .attr("width", function (d) {
+                return x(d.x1) - x(d.x0);
+            })
+            .attr("height", function (d) {
+                return y(d.y1) - y(d.y0);
+            });
+    }
+
+    function name(d) {
+        return breadcrumbs(d) +
+            (d.parent
+            ? " -  Click To Zoom Out"
+            : " - Click a Region to Inspect States");
+    }
+
+    function breadcrumbs(d) {
+        var res = "";
+        var sep = " > ";
+        d.ancestors().reverse().forEach(function(i){
+            res += i.data.name + sep;
+        });
+        return res
+            .split(sep)
+            .filter(function(i){
+                return i!== "";
+            })
+            .join(sep);
+    }
 });
-
-function update(source) {
-
-  // Compute the flattened node list.
-  var nodes = root.descendants();
-
-
-
-  d3.select("svg").transition()
-      .duration(duration)
-      .attr("height", height);
-
-  d3.select(self.frameElement).transition()
-      .duration(duration)
-      .style("height", height + "px");
-
-  // Compute the "layout". TODO https://github.com/d3/d3-hierarchy/issues/67
-  var index = -1;
-  root.eachBefore(function(n) {
-    n.x = ++index * barHeight;
-    n.y = n.depth * 20;
-  });
-
-  // Update the nodes&#65533;
-  var node = svg.selectAll(".node")
-    .data(nodes, function(d) { return d.id || (d.id = ++i); });
-
-  var nodeEnter = node.enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-      .style("opacity", 0);
-
-  // Enter any new nodes at the parent's previous position.
-  nodeEnter.append("rect")
-      .attr("y", -barHeight / 2)
-      .attr("height", barHeight)
-      .attr("width", barWidth)
-      .style("fill", color)
-      .on("click", click);
-
-  nodeEnter.append("text")
-      .attr("dy", 3.5)
-      .attr("dx", 5.5)
-      .text(function(d) { return d.data.name; });
-
-  // Transition nodes to their new position.
-  nodeEnter.transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
-      .style("opacity", 1);
-
-  node.transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
-      .style("opacity", 1)
-    .select("rect")
-      .style("fill", color);
-
-  // Transition exiting nodes to the parent's new position.
-  node.exit().transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
-      .style("opacity", 0)
-      .remove();
-
-  // Update the links&#65533;
-  var link = svg.selectAll(".link")
-    .data(root.links(), function(d) { return d.target.id; });
-
-  // Enter any new links at the parent's previous position.
-  link.enter().insert("path", "g")
-      .attr("class", "link")
-      .attr("d", function(d) {
-        var o = {x: source.x0, y: source.y0};
-        return diagonal({source: o, target: o});
-      })
-    .transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
-  // Transition links to their new position.
-  link.transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
-  // Transition exiting nodes to the parent's new position.
-  link.exit().transition()
-      .duration(duration)
-      .attr("d", function(d) {
-        var o = {x: source.x, y: source.y};
-        return diagonal({source: o, target: o});
-      })
-      .remove();
-
-  // Stash the old positions for transition.
-  root.each(function(d) {
-    d.x0 = d.x;
-    d.y0 = d.y;
-  });
-}
-
-// Toggle children on click.
-function click(d) {
-  if (d.children) {
-    d._children = d.children;
-    d.children = null;
-  } else {
-    d.children = d._children;
-    d._children = null;
-  }
-  update(d);
-}
-
-function color(d) {
-  return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
-}
